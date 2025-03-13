@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: illumineer-frontend
+  labels:
+    app: illumineer-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: illumineer-frontend
+  template:
+    metadata:
+      labels:
+        app: illumineer-frontend
+    spec:
+      containers:
+        - name: illumineer-frontend
+          image: your-username/illumineer-frontend:latest
+          ports:
+            - containerPort: 80

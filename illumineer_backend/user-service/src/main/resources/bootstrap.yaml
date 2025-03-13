@@ -1,0 +1,27 @@
+spring:
+  host: localhost
+  application:
+    name: user-service
+  cloud:
+    nacos:
+      username: nacos
+      password: nacos
+      config:
+        server-addr: http://${spring.host}:8848 #nacos中心地址
+        file-extension: yaml # 配置文件格式
+        namespace: public
+      discovery:
+        ip: ${spring.host}
+        server-addr: ${spring.host}:8848  # Nacos 服务器地址
+  profiles:
+    active: dev # 环境标识
+  config:
+    import:
+      - optional:nacos:${spring.application.name}-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO  # 调试级别日志输出

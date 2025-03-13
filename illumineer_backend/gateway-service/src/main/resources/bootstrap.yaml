@@ -1,0 +1,70 @@
+spring:
+  host: localhost
+  application:
+    name: gateway-service
+  cloud:
+    inetutils:
+      # 可用正则表达式，表示禁用以VMware开头的网络
+      ignoredInterfaces: [ 'VMware.*' ]
+      # 可用ip地址段表示
+      #preferred-networks: [ '119.1' ]
+      #use-only-site-local-interfaces: true
+
+    nacos:
+      config:
+        server-addr: http://${spring.host}:8848 #nacos中心地址
+        file-extension: yaml # 配置文件格式
+        namespace: public
+        group: DEFAULT_GROUP
+      discovery:
+
+        server-addr: ${spring.host}:8848  # Nacos 服务器地址
+    gateway:
+      discovery:
+        locator:
+          enabled: true   # 启用服务发现自动路由
+          lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://user-service  # 使用负载均衡的服务发现机制
+          #uri: http://localhost:8091
+          predicates:
+            - Path=/user/**      # 匹配以 /users 开头的请求路径
+          filters:
+            - StripPrefix=1       # 移除路径前缀 /users
+
+        - id: document-service
+          uri: lb://document-service
+          #uri: http://localhost:8092
+          predicates:
+            - Path=/document/**
+          filters:
+            - StripPrefix=1
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials Vary, RETAIN_UNIQUE
+      # 处理跨域请求
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedHeaders: "*"
+            allowedOriginPatterns: "*"  # 使用 allowedOriginPatterns 代替 allowedOrigins
+            allowCredentials: true
+            allowedMethods:
+              - GET
+              - POST
+              - DELETE
+              - PUT
+              - OPTION
+
+  profiles:
+    active: dev # 环境标识
+  config:
+    import:
+      - optional:nacos:${spring.application.name}-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG  # 调试级别日志输出
